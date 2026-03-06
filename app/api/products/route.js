@@ -25,7 +25,7 @@ export async function POST(request) {
     category: category || 'Uncategorized',
     imageUrl: imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
     priority: priority || 'Normal',
-    addedBy: session.user.email,
+    addedBy: 'demo@lumina.com',
   });
 
   return NextResponse.json(product, { status: 201 });

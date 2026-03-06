@@ -155,11 +155,11 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          {session ? (
+          {user ? (
             <>
               <Link href="/products/add" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>Add Product</Link>
               <Link href="/products/manage" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>Manage Products</Link>
-              <button className={`${styles.mobileLink} ${styles.mobileSignOut}`} onClick={() => { setMenuOpen(false); signOut({ callbackUrl: '/' }); }}>
+              <button className={`${styles.mobileLink} ${styles.mobileSignOut}`} onClick={() => { setMenuOpen(false); signOut(); }}>
                 Sign Out
               </button>
             </>
