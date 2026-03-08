@@ -16,7 +16,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const { getTotalItems } = useCart();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -103,20 +103,39 @@ export default function Navbar() {
                     <p className={styles.dropdownEmail}>{user.email}</p>
                   </div>
                   <div className={styles.dropdownDivider} />
-                  <Link href="/products/add" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                  {isAdmin && (
+                    <>
+                      <Link href="/products/add" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M7.5 1v13M1 7.5h13"/>
+                        </svg>
+                        Add Product
+                      </Link>
+                      <Link href="/products/manage" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="1" y="1" width="5" height="5" rx="1"/>
+                          <rect x="9" y="1" width="5" height="5" rx="1"/>
+                          <rect x="1" y="9" width="5" height="5" rx="1"/>
+                          <rect x="9" y="9" width="5" height="5" rx="1"/>
+                        </svg>
+                        Manage Products
+                      </Link>
+                      <Link href="/admin" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <rect x="1" y="1" width="13" height="13" rx="2"/>
+                          <circle cx="7.5" cy="7.5" r="2"/>
+                        </svg>
+                        Admin Dashboard
+                      </Link>
+                      <div className={styles.dropdownDivider} />
+                    </>
+                  )}
+                  <Link href="/dashboard" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
                     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M7.5 1v13M1 7.5h13"/>
+                      <rect x="1" y="1" width="13" height="13" rx="2"/>
+                      <path d="M4 6h7M4 9h7"/>
                     </svg>
-                    Add Product
-                  </Link>
-                  <Link href="/products/manage" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="1" y="1" width="5" height="5" rx="1"/>
-                      <rect x="9" y="1" width="5" height="5" rx="1"/>
-                      <rect x="1" y="9" width="5" height="5" rx="1"/>
-                      <rect x="9" y="9" width="5" height="5" rx="1"/>
-                    </svg>
-                    Manage Products
+                    My Dashboard
                   </Link>
                   <div className={styles.dropdownDivider} />
                   <button

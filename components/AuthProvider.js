@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 const AuthContext = createContext();
@@ -17,10 +17,19 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState('user'); // 'admin' or 'user'
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Check if user is admin (you can expand this logic)
+        const isAdmin = user.email === 'admin@lumina.com' || user.email === 'demo@lumina.com';
+        setRole(isAdmin ? 'admin' : 'user');
+        setUser(user);
+      } else {
+        setUser(null);
+        setRole('user');
+      }
       setLoading(false);
     });
 
@@ -31,8 +40,12 @@ export function AuthProvider({ children }) {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signUp = async (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const signUp = async (email, password, displayName = '') => {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    if (displayName && result.user) {
+      await updateProfile(result.user, { displayName });
+    }
+    return result;
   };
 
   const signInWithGoogle = async () => {
@@ -46,6 +59,8 @@ export function AuthProvider({ children }) {
 
   const value = {
     user,
+    role,
+    isAdmin: role === 'admin',
     signIn,
     signUp,
     signInWithGoogle,
