@@ -105,6 +105,28 @@
   font-weight: 500;
 }
 
+.addToCartBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0a0a0f;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.addToCartBtn:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
 .divider {
   height: 1px;
   background: var(--border);
@@ -151,6 +173,39 @@
   font-size: 0.9rem;
   color: var(--text-2);
   line-height: 1.8;
+}
+
+/* Loading and error states */
+.loading {
+  text-align: center;
+  padding: 80px 20px;
+  font-size: 1.1rem;
+  color: var(--text-2);
+}
+
+.notFound {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.notFoundIcon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.notFound h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.notFound p {
+  font-size: 1rem;
+  color: var(--text-2);
+  margin-bottom: 32px;
 }
 
 @media (max-width: 900px) {

@@ -41,13 +41,86 @@ cd lumina
 npm install
 ```
 
-### 3. Configure environment variables
+## Firebase Setup (Required for Authentication)
 
-Copy `.env.local` and fill in values:
+### 1. Create a Firebase Project
 
-```bash
-cp .env.local .env.local
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Click "Create a project" or "Add project"
+3. Enter project name: `lumina-marketplace`
+4. Enable Google Analytics (optional)
+5. Choose Google Analytics account or create new
+6. Click "Create project"
+
+### 2. Enable Authentication
+
+1. In your Firebase project, go to **Authentication** in the left sidebar
+2. Click **Get started**
+3. Go to **Sign-in method** tab
+4. Enable **Email/Password** provider
+5. Enable **Google** provider:
+   - Click on Google
+   - Toggle "Enable"
+   - Enter project name (e.g., "Lumina Marketplace")
+   - Add your domain: `localhost` (for development)
+   - Click "Save"
+
+### 3. Get Firebase Configuration
+
+1. Go to **Project Settings** (gear icon)
+2. Scroll down to "Your apps" section
+3. Click "Add app" → Web app (</>)
+4. Enter app nickname: "Lumina Web App"
+5. **Check "Also set up Firebase Hosting"** (optional)
+6. Click "Register app"
+7. Copy the config object from the code snippet
+
+### 4. Update Firebase Config
+
+Replace the placeholder config in `lib/firebase.js` with your actual Firebase config:
+
+```javascript
+const firebaseConfig = {
+  apiKey: "your-actual-api-key",
+  authDomain: "your-project.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef123456"
+};
 ```
+
+### 5. Update Environment Variables
+
+In `.env.local`, make sure you have:
+
+```env
+# Firebase doesn't need additional env vars for basic auth
+# Google OAuth is configured in Firebase Console
+```
+
+### 6. Test Authentication
+
+1. Start the dev server: `npm run dev`
+2. Try registering with email/password
+3. Try signing in with Google
+4. Both should work once Firebase is properly configured
+
+### Troubleshooting
+
+**Registration/Login not working:**
+- Check Firebase Console > Authentication > Users to see if accounts are created
+- Check browser console for errors
+- Make sure Google provider is enabled in Firebase Console
+- Verify your domain is added to authorized domains
+
+**Google OAuth popup blocked:**
+- Make sure you're testing on `localhost` or an authorized domain
+- Check browser popup blocker settings
+
+**Firebase errors:**
+- Verify your config is correct
+- Check Firebase Console > Project Settings > General for correct config
 
 Edit `.env.local`:
 
@@ -58,6 +131,10 @@ NEXTAUTH_SECRET=your-secret-key-here
 # Optional: Google OAuth
 GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Stripe Payment Processing
+STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your-stripe-publishable-key
 ```
 
 To generate a secret:
@@ -65,7 +142,13 @@ To generate a secret:
 openssl rand -base64 32
 ```
 
-### 4. Run the development server
+### 4. Set up Stripe
+
+1. Create a [Stripe account](https://stripe.com)
+2. Get your API keys from the dashboard
+3. Add them to `.env.local`
+
+### 5. Run the development server
 
 ```bash
 npm run dev
@@ -73,12 +156,22 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### 5. Demo credentials
+### 6. Demo credentials
 
 | Email | Password |
 |-------|----------|
 | demo@lumina.com | demo123 |
 | user@test.com | test123 |
+
+---
+
+## Features
+
+- **Shopping Cart**: Add products to cart, view total, adjust quantities
+- **Stripe Payments**: Secure checkout with Stripe Elements
+- **Authentication**: Firebase Auth with email/password
+- **Product Management**: Add, view, and manage products
+- **Responsive Design**: Works on all devices
 
 ---
 
@@ -91,10 +184,14 @@ Open [http://localhost:3000](http://localhost:3000).
 | `/register` | Public | Create a new account |
 | `/products` | Public | Product catalog with search & filter |
 | `/products/[id]` | Public | Product detail page |
+| `/cart` | Public | Shopping cart |
+| `/checkout` | Public | Payment checkout (requires auth) |
+| `/checkout/success` | Public | Payment success confirmation |
 | `/products/add` | **Protected** | Add a new product (auth required) |
 | `/products/manage` | **Protected** | Manage/delete all products (auth required) |
 | `/api/products` | API | GET all products / POST new product |
 | `/api/products/[id]` | API | GET/DELETE product by ID |
+| `/api/create-payment-intent` | API | Create Stripe payment intent |
 | `/api/auth/[...nextauth]` | API | NextAuth.js authentication handler |
 
 ---

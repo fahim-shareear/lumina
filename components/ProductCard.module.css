@@ -82,6 +82,12 @@
   margin-top: 8px;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .price {
   font-family: 'Playfair Display', serif;
   font-size: 1.1rem;
@@ -109,4 +115,24 @@
   color: var(--accent);
   border-color: rgba(201,168,76,0.4);
   background: var(--accent-glow);
+}
+
+.addToCartBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #0a0a0f;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addToCartBtn:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  transform: scale(1.05);
 }

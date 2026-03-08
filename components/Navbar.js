@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
+import { useCart } from '@/components/CartProvider';
 import styles from './Navbar.module.css';
 
 const navLinks = [
@@ -16,6 +17,7 @@ const navLinks = [
 
 export default function Navbar() {
   const { user, signOut } = useAuth();
+  const { getTotalItems } = useCart();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -65,6 +67,17 @@ export default function Navbar() {
 
         {/* Auth area */}
         <div className={styles.authArea}>
+          {/* Cart */}
+          <Link href="/cart" className={styles.cartLink}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="8" cy="19" r="1"/>
+              <circle cx="16" cy="19" r="1"/>
+              <path d="M1 1h3l1.68 10.39a2 2 0 002 1.61h9.72a2 2 0 001.99-1.79l1.2-7.21H5"/>
+            </svg>
+            {getTotalItems() > 0 && (
+              <span className={styles.cartBadge}>{getTotalItems()}</span>
+            )}
+          </Link>
           {user ? (
             <div className={styles.userMenu} ref={dropdownRef}>
               <button
