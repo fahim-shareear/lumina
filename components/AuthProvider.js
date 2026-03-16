@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
             const adminData = response && response.ok ? await response.json() : null;
             
             if (adminData && adminData.success) {
-              setRole('admin');
+              setRole(adminData.user.role || 'admin');
             } else {
               setRole('user');
             }
@@ -62,35 +62,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = async (email, password) => {
-    // If it's the admin email, try MongoDB auth first
-    if (email === 'admin@lumina.com') {
-      const response = await fetch('/api/auth/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        // Also sign in to Firebase to have a session, 
-        // or we can mock it. For consistency, we'll try to sign in to Firebase too.
-        // If the user doesn't exist in Firebase, we should create it or use a master session.
-        try {
-          await signInWithEmailAndPassword(auth, email, password);
-        } catch (fbError) {
-          console.log('Admin authenticated via MongoDB but not in Firebase. Creating Firebase ghost user...');
-          // Optional: handle Firebase sync here
-        }
-        setRole('admin');
-        return { user: data.user, success: true };
-      } else {
-        throw new Error(data.message || 'Invalid admin credentials');
-      }
-    }
-    
-    // Regular user
-    return signInWithEmailAndPassword(auth, email, password);
+    // We navigate to Firebase as the primary auth source now that admin credentials are in Firebase.
+    // The role (Admin/User) will be automatically determined by the onAuthStateChanged hook.
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result;
   };
 
   const signUp = async (email, password, displayName = '') => {
@@ -130,6 +105,8 @@ export function AuthProvider({ children }) {
     user,
     role,
     isAdmin: role === 'admin',
+    isStaff: role === 'staff' || role === 'admin',
+    isDelivery: role === 'delivery' || role === 'admin',
     signIn,
     signUp,
     signInWithGoogle,

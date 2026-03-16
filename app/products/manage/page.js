@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import ProductImage from '@/components/ProductImage';
 import toast from 'react-hot-toast';
 import styles from './page.module.css';
 
@@ -111,13 +111,12 @@ export default function ManageProductsPage() {
                       <tr key={p.id}>
                         <td>
                           <div className={styles.productCell}>
-                            <Image
+                            <ProductImage
                               src={p.imageUrl}
                               alt={p.title}
                               className={styles.thumb}
                               width={40}
                               height={40}
-                              onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'; }}
                             />
                             <div>
                               <p className={styles.productTitle}>{p.title}</p>
@@ -168,13 +167,12 @@ export default function ManageProductsPage() {
                 return (
                   <div key={p.id} className={styles.mobileCard}>
                     <div className={styles.mobileCardTop}>
-                      <Image
+                      <ProductImage
                         src={p.imageUrl}
                         alt={p.title}
                         className={styles.mobileThumb}
                         width={60}
                         height={60}
-                        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'; }}
                       />
                       <div className={styles.mobileInfo}>
                         <p className={styles.productTitle}>{p.title}</p>

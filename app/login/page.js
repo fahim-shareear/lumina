@@ -92,11 +92,6 @@ export default function LoginPage() {
           <p className={styles.subtitle}>Sign in to your account to continue</p>
         </div>
 
-        {/* Updated Demo hint */}
-        <div className={styles.demoHint}>
-          <strong>Admin:</strong> admin@lumina.com / Lumina@1122
-        </div>
-
         {/* Google Sign In */}
         <button
           type="button"

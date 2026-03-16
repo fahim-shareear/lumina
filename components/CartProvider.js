@@ -15,7 +15,7 @@ export function useCart() {
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage on mount and sync across tabs
   useEffect(() => {
     const savedCart = localStorage.getItem('lumina-cart');
     if (savedCart) {
@@ -25,6 +25,20 @@ export function CartProvider({ children }) {
         console.error('Error parsing cart from localStorage:', error);
       }
     }
+
+    const handleStorageChange = (e) => {
+      if (e.key === 'lumina-cart') {
+        try {
+          const newCart = e.newValue ? JSON.parse(e.newValue) : [];
+          setCart(newCart);
+        } catch (error) {
+          console.error('Error syncing cart across tabs:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Save cart to localStorage whenever it changes

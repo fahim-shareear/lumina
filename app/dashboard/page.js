@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { generateOrderReceipt } from '@/lib/pdf-utils';
 import styles from './page.module.css';
 
 export default function DashboardPage() {
@@ -112,7 +113,18 @@ export default function DashboardPage() {
                   <div className={styles.orderHeader}>
                     <div className={styles.orderId}>Order #{order._id || order.id}</div>
                     <div className={styles.orderDate}>{new Date(order.createdAt || order.date).toLocaleDateString()}</div>
-                    <div className={styles.orderStatus}>{order.status || 'Completed'}</div>
+                    <div className={styles.orderHeaderActions}>
+                      <span className={styles.orderStatus}>{order.status || 'Completed'}</span>
+                      <button 
+                        className={styles.receiptBtn}
+                        onClick={() => generateOrderReceipt(order)}
+                        title="Download Receipt"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                   <div className={styles.orderItems}>
                     {order.items.map((item, itemIndex) => (

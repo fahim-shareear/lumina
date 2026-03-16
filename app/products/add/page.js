@@ -65,7 +65,10 @@ export default function AddProductPage() {
       const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          addedBy: user.email
+        }),
       });
 
       if (res.ok) {

@@ -3,17 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import ProductImage from '@/components/ProductImage';
+import { generateOrderReceipt, generateOrdersReport } from '@/lib/pdf-utils';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import styles from './page.module.css';
 
 export default function AdminDashboard() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, isStaff, isDelivery, loading } = useAuth();
   const router = useRouter();
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showUserForm, setShowUserForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -22,68 +24,59 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-      return;
+    if (!loading) {
+      if (!user) {
+        router.push('/login');
+      } else if (!isStaff && !isDelivery) {
+        router.push('/dashboard');
+      }
     }
-
-    if (!loading && !isAdmin) {
-      router.push('/dashboard');
-      return;
-    }
-
-    // Load data
-    fetchProducts();
-    fetchOrders();
-  }, [user, loading, isAdmin, router]);
+  }, [user, isStaff, isDelivery, loading, router]);
 
   const fetchProducts = async () => {
     try {
       const res = await fetch('/api/products');
-      const data = await res.json();
-      setProducts(data);
-      setStats(prev => ({
-        ...prev,
-        totalProducts: data.length,
-      }));
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(data);
+        setStats(prev => ({ ...prev, totalProducts: data.length }));
+      }
     } catch (error) {
-      toast.error('Failed to load products');
+      console.error('Error fetching products:', error);
     }
   };
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('/api/orders/all');
+      const res = await fetch('/api/orders');
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
-        
-        const revenue = data.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
-        
-        setStats(prev => ({
-          ...prev,
-          totalRevenue: revenue,
-          totalOrders: data.length,
-        }));
+        const revenue = data.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        setStats(prev => ({ ...prev, totalRevenue: revenue, totalOrders: data.length }));
       }
     } catch (error) {
-      console.error('Failed to load orders:', error);
+      console.error('Error fetching orders:', error);
     }
   };
 
+  useEffect(() => {
+    if (user && (isStaff || isDelivery)) {
+      fetchProducts();
+      fetchOrders();
+    }
+  }, [user, isStaff, isDelivery]);
+
   const handleDeleteProduct = async (productId) => {
-    if (confirm('Are you sure you want to delete this product?')) {
+    if (confirm('Delete this product?')) {
       try {
         const res = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
         if (res.ok) {
-          setProducts(products.filter(p => p.id !== productId));
-          toast.success('Product deleted successfully');
-          setStats(prev => ({ ...prev, totalProducts: prev.totalProducts - 1 }));
-        } else {
-          toast.error('Failed to delete product');
+          fetchProducts();
+          toast.success('Product deleted');
         }
       } catch (error) {
-        toast.error('Error deleting product');
+        toast.error('Failed to delete product');
       }
     }
   };
@@ -97,11 +90,9 @@ export default function AdminDashboard() {
       });
       
       if (res.ok) {
-        const newProduct = await res.json();
-        setProducts([...products, newProduct]);
+        fetchProducts();
         setShowAddForm(false);
-        toast.success('Product added successfully');
-        setStats(prev => ({ ...prev, totalProducts: prev.totalProducts + 1 }));
+        toast.success('Product added');
       } else {
         toast.error('Failed to add product');
       }
@@ -119,10 +110,9 @@ export default function AdminDashboard() {
       });
       
       if (res.ok) {
-        const updated = await res.json();
-        setProducts(products.map(p => p.id === id ? updated : p));
+        fetchProducts();
         setEditingProduct(null);
-        toast.success('Product updated successfully');
+        toast.success('Product updated');
       } else {
         toast.error('Failed to update product');
       }
@@ -140,8 +130,8 @@ export default function AdminDashboard() {
       });
       
       if (res.ok) {
-        setOrders(orders.map(o => (o._id === orderId || o.id === orderId) ? { ...o, status: newStatus } : o));
-        toast.success(`Order marked as ${newStatus}`);
+        fetchOrders();
+        toast.success(`Status updated`);
       } else {
         toast.error('Failed to update order status');
       }
@@ -155,9 +145,8 @@ export default function AdminDashboard() {
       try {
         const res = await fetch(`/api/orders/${orderId}`, { method: 'DELETE' });
         if (res.ok) {
-          setOrders(orders.filter(o => (o._id !== orderId && o.id !== orderId)));
+          fetchOrders();
           toast.success('Order deleted');
-          setStats(prev => ({ ...prev, totalOrders: prev.totalOrders - 1 }));
         } else {
           toast.error('Failed to delete order');
         }
@@ -167,11 +156,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleCreateUser = async (userData) => {
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.message);
+        setShowUserForm(false);
+      } else {
+        toast.error(data.error || 'Failed to create user');
+      }
+    } catch (error) {
+      toast.error('Something went wrong');
+    }
+  };
+
   if (loading) {
     return <div className={styles.loading}>Loading...</div>;
   }
 
-  if (!user || !isAdmin) {
+  if (!user || (!isStaff && !isDelivery)) {
     return null; // Will redirect
   }
 
@@ -197,9 +205,9 @@ export default function AdminDashboard() {
             <div className={styles.statValue}>{stats.totalOrders}</div>
             <div className={styles.statLabel}>Total Orders</div>
           </div>
-          <div className={styles.statCard}>
-            <div className={styles.statValue}>98%</div>
-            <div className={styles.statLabel}>Satisfaction Rate</div>
+          <div className={`${styles.statCard} ${styles.reportCard}`} onClick={() => generateOrdersReport(orders)}>
+            <div className={styles.reportIcon}>📄</div>
+            <div className={styles.statLabel}>Download Full Report</div>
           </div>
         </div>
 
@@ -211,11 +219,16 @@ export default function AdminDashboard() {
           >
             Add New Product
           </button>
+          {isAdmin && (
+            <button
+              className="btn-secondary"
+              onClick={() => setShowUserForm(true)}
+            >
+              Add Staff/Delivery
+            </button>
+          )}
           <Link href="/products/manage" className="btn-secondary">
             Manage Products
-          </Link>
-          <Link href="/products/add" className="btn-secondary">
-            Bulk Import
           </Link>
         </div>
 
@@ -230,13 +243,12 @@ export default function AdminDashboard() {
             <div className={styles.productsList}>
               {products.slice(0, 5).map((product) => (
                 <div key={product.id} className={styles.listItem}>
-                  <Image 
+                  <ProductImage 
                     src={product.imageUrl} 
                     alt={product.title} 
                     width={40} 
                     height={40} 
                     className={styles.listThumb}
-                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'; }}
                   />
                   <div className={styles.listInfo}>
                     <h3 className={styles.listTitle}>{product.title}</h3>
@@ -244,7 +256,9 @@ export default function AdminDashboard() {
                   </div>
                   <div className={styles.listActions}>
                     <button onClick={() => setEditingProduct(product)}>Edit</button>
-                    <button onClick={() => handleDeleteProduct(product.id)} className={styles.deleteText}>Delete</button>
+                    {isAdmin && (
+                      <button onClick={() => handleDeleteProduct(product.id)} className={styles.deleteText}>Delete</button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -264,6 +278,11 @@ export default function AdminDashboard() {
                   <div className={styles.listInfo}>
                     <h3 className={styles.listTitle}>{order.customer?.name || 'Guest'}</h3>
                     <p className={styles.listMeta}>{order.items?.length || 0} items • ${order.totalAmount?.toLocaleString()}</p>
+                    {order.customer?.shippingAddress && (
+                      <p className={styles.orderAddress}>
+                        📍 {order.customer.shippingAddress.street}, {order.customer.shippingAddress.city} • {order.customer.shippingAddress.phone}
+                      </p>
+                    )}
                     <p className={styles.listSubMeta}>{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
                   <div className={styles.orderStatus}>
@@ -278,13 +297,26 @@ export default function AdminDashboard() {
                       <option value="delivered">Delivered</option>
                       <option value="cancelled">Cancelled</option>
                     </select>
-                    <button 
-                      className={styles.deleteOrderBtn}
-                      onClick={() => handleDeleteOrder(order._id || order.id)}
-                      title="Delete Order"
-                    >
-                      ×
-                    </button>
+                    <div className={styles.orderBtnGroup}>
+                      <button 
+                        className={styles.receiptBtn}
+                        onClick={() => generateOrderReceipt(order)}
+                        title="Download Receipt (PDF)"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                        </svg>
+                      </button>
+                      {isAdmin && (
+                        <button 
+                          className={styles.deleteOrderBtn}
+                          onClick={() => handleDeleteOrder(order._id || order.id)}
+                          title="Delete Order"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -298,6 +330,14 @@ export default function AdminDashboard() {
           <ProductForm
             onSubmit={handleAddProduct}
             onCancel={() => setShowAddForm(false)}
+          />
+        )}
+
+        {/* Add User Modal */}
+        {showUserForm && (
+          <UserForm
+            onSubmit={handleCreateUser}
+            onCancel={() => setShowUserForm(false)}
           />
         )}
 
@@ -316,6 +356,7 @@ export default function AdminDashboard() {
 
 // Product Form Component
 function ProductForm({ product, onSubmit, onCancel }) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: product?.title || '',
     shortDescription: product?.shortDescription || '',
@@ -331,7 +372,7 @@ function ProductForm({ product, onSubmit, onCancel }) {
     onSubmit({
       ...formData,
       price: parseFloat(formData.price),
-      addedBy: 'admin@lumina.com',
+      addedBy: user?.email || 'admin@lumina.com',
     });
   };
 
@@ -440,6 +481,93 @@ function ProductForm({ product, onSubmit, onCancel }) {
             </button>
             <button type="submit" className="btn-primary">
               {product ? 'Update Product' : 'Add Product'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// User Creation Form Component
+function UserForm({ onSubmit, onCancel }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'staff',
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const updateField = (field) => (e) => {
+    setFormData({ ...formData, [field]: e.target.value });
+  };
+
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modal}>
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle}>Add Staff or Delivery</h2>
+          <button className={styles.closeBtn} onClick={onCancel}>×</button>
+        </div>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label className="label">Full Name</label>
+            <input
+              type="text"
+              className="input"
+              value={formData.name}
+              onChange={updateField('name')}
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className="label">Email Address</label>
+            <input
+              type="email"
+              className="input"
+              value={formData.email}
+              onChange={updateField('email')}
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className="label">Temporary Password</label>
+            <input
+              type="password"
+              className="input"
+              value={formData.password}
+              onChange={updateField('password')}
+              required
+              minLength={6}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className="label">Role</label>
+            <select
+              className="input"
+              value={formData.role}
+              onChange={updateField('role')}
+            >
+              <option value="staff">Staff / Manager</option>
+              <option value="delivery">Delivery Personnel</option>
+              <option value="admin">Secondary Admin</option>
+            </select>
+          </div>
+
+          <div className={styles.formActions}>
+            <button type="button" className="btn-secondary" onClick={onCancel}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary">
+              Create Account
             </button>
           </div>
         </form>

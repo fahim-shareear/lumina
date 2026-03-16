@@ -91,10 +91,18 @@ export default function CartPage() {
     <div className={styles.page}>
       <div className="container">
         <div className={styles.header}>
-          <h1 className={styles.title}>Shopping Cart</h1>
-          <p className={styles.subtitle}>
-            {cart.length} item{cart.length !== 1 ? 's' : ''} in your cart
-          </p>
+          <div className={styles.headerInfo}>
+            <h1 className={styles.title}>Shopping Cart</h1>
+            <p className={styles.subtitle}>
+              {cart.reduce((acc, item) => acc + item.quantity, 0)} items in your cart
+            </p>
+          </div>
+          <button className={styles.clearCartBtn} onClick={clearCart}>
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M3 6h14m-2 0v11a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
+            Clear Cart
+          </button>
         </div>
 
         <div className={styles.layout}>
@@ -136,8 +144,12 @@ export default function CartPage() {
                   <button
                     className={styles.removeBtn}
                     onClick={() => handleRemove(item.id)}
+                    title="Remove item"
                   >
-                    Remove
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M3 6h14m-2 0v11a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                    </svg>
+                    <span>Remove</span>
                   </button>
                 </div>
               </div>

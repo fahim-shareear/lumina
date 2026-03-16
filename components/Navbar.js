@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import ProductImage from '@/components/ProductImage';
+import NextImage from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { useCart } from '@/components/CartProvider';
@@ -16,8 +17,8 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const { user, signOut, isAdmin } = useAuth();
-  const { getTotalItems, cart, getTotalPrice } = useCart();
+  const { user, signOut, isAdmin, isStaff, isDelivery } = useAuth();
+  const { getTotalItems, cart, getTotalPrice, removeFromCart } = useCart();
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -113,13 +114,12 @@ export default function Navbar() {
                         <div key={item.id} className={styles.cartItem}>
                           {item.imageUrl && (
                             <div className={styles.cartItemImg}>
-                              <Image 
+                              <ProductImage 
                                 src={item.imageUrl} 
                                 alt={item.title} 
                                 width={40} 
                                 height={40} 
                                 className={styles.thumb}
-                                onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'; }}
                               />
                             </div>
                           )}
@@ -129,6 +129,13 @@ export default function Navbar() {
                               Qty: {item.quantity} &nbsp;·&nbsp; ${(item.price * item.quantity).toLocaleString()}
                             </p>
                           </div>
+                          <button 
+                            className={styles.cartItemRemove}
+                            onClick={() => removeFromCart(item.id)}
+                            aria-label="Remove item"
+                          >
+                            ×
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -157,7 +164,7 @@ export default function Navbar() {
                 aria-expanded={dropdownOpen}
               >
                 {user.photoURL ? (
-                  <Image src={user.photoURL} alt={user.displayName} className={styles.avatarImg} width={32} height={32} />
+                  <NextImage src={user.photoURL} alt={user.displayName} className={styles.avatarImg} width={32} height={32} />
                 ) : (
                   <span className={styles.avatarInitial}>{avatarInitial}</span>
                 )}
@@ -174,7 +181,7 @@ export default function Navbar() {
                     <p className={styles.dropdownEmail}>{user.email}</p>
                   </div>
                   <div className={styles.dropdownDivider} />
-                  {isAdmin && (
+                  {isStaff && (
                     <>
                       <Link href="/products/add" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -182,21 +189,12 @@ export default function Navbar() {
                         </svg>
                         Add Product
                       </Link>
-                      <Link href="/products/manage" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
-                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <rect x="1" y="1" width="5" height="5" rx="1"/>
-                          <rect x="9" y="1" width="5" height="5" rx="1"/>
-                          <rect x="1" y="9" width="5" height="5" rx="1"/>
-                          <rect x="9" y="9" width="5" height="5" rx="1"/>
-                        </svg>
-                        Manage Products
-                      </Link>
                       <Link href="/admin" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
                         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
                           <rect x="1" y="1" width="13" height="13" rx="2"/>
                           <circle cx="7.5" cy="7.5" r="2"/>
                         </svg>
-                        Admin Dashboard
+                        {isAdmin ? 'Admin Dashboard' : 'Management'}
                       </Link>
                       <div className={styles.dropdownDivider} />
                     </>

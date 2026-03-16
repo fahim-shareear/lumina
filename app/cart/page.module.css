@@ -3,8 +3,15 @@
 }
 
 .header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   margin-bottom: 48px;
+  gap: 20px;
+}
+
+.headerInfo {
+  flex: 1;
 }
 
 .title {
@@ -135,17 +142,51 @@
 }
 
 .removeBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.8rem;
-  color: var(--red);
+  color: var(--text-3);
   background: none;
   border: none;
   cursor: pointer;
-  text-decoration: underline;
-  padding: 4px 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
 }
 
 .removeBtn:hover {
-  color: #e05454;
+  color: var(--red);
+  background: rgba(224, 84, 84, 0.1);
+}
+
+.clearCartBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearCartBtn:hover {
+  background: rgba(224, 84, 84, 0.05);
+  border-color: rgba(224, 84, 84, 0.3);
+  color: var(--red);
+}
+
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 }
 
 /* Summary */

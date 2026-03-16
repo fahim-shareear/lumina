@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/components/CartProvider';
 import toast from 'react-hot-toast';
 import styles from './ProductCard.module.css';
@@ -29,14 +29,12 @@ export default function ProductCard({ product }) {
   return (
     <div className={styles.card}>
       <div className={styles.imageWrap}>
-        <Image
+        <ProductImage
           src={product.imageUrl}
           alt={product.title}
           className={styles.image}
           width={300}
           height={200}
-          loading="lazy"
-          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'; }}
         />
         <div className={styles.categoryBadge} style={{ '--cat-color': color }}>
           {product.category}
