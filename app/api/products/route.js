@@ -1,32 +1,21 @@
-import { NextResponse } from 'next/server';
 import { getProducts, addProduct } from '@/lib/products';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const products = getProducts();
-  return NextResponse.json(products);
+  try {
+    const products = await getProducts();
+    return NextResponse.json(products);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+  }
 }
 
 export async function POST(request) {
-  // For demo purposes, allowing unauthenticated access
-  // In production, implement proper authentication
-
-  const body = await request.json();
-  const { title, shortDescription, fullDescription, price, category, imageUrl, priority } = body;
-
-  if (!title || !shortDescription || !fullDescription || !price) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  try {
+    const data = await request.json();
+    const newProduct = await addProduct(data);
+    return NextResponse.json(newProduct, { status: 201 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to add product' }, { status: 500 });
   }
-
-  const product = addProduct({
-    title,
-    shortDescription,
-    fullDescription,
-    price: parseFloat(price),
-    category: category || 'Uncategorized',
-    imageUrl: imageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
-    priority: priority || 'Normal',
-    addedBy: 'demo@lumina.com',
-  });
-
-  return NextResponse.json(product, { status: 201 });
 }

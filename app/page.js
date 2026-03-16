@@ -4,7 +4,7 @@ import ProductCard from '@/components/ProductCard';
 import styles from './page.module.css';
 
 export default async function HomePage() {
-  const products = getProducts().slice(0, 3);
+  const products = (await getProducts()).slice(0, 3);
 
   const features = [
     {

@@ -27,23 +27,26 @@ export default function DashboardPage() {
       return;
     }
 
-    // Load user orders from localStorage (in production, this would be from a database)
-    const savedOrders = localStorage.getItem(`orders_${user?.uid}`);
-    if (savedOrders) {
+    // Load user orders from MongoDB API
+    const fetchOrders = async () => {
       try {
-        const parsedOrders = JSON.parse(savedOrders);
-        setOrders(parsedOrders);
-
-        // Calculate stats
-        const totalSpent = parsedOrders.reduce((sum, order) => sum + order.total, 0);
-        const totalOrders = parsedOrders.length;
-        const totalItems = parsedOrders.reduce((sum, order) => sum + order.items.length, 0);
-
-        setStats({ totalSpent, totalOrders, totalItems });
+        const response = await fetch(`/api/orders?email=${user.email}`);
+        if (response.ok) {
+          const data = await response.json();
+          setOrders(data);
+          
+          const totalSpent = data.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+          const totalOrders = data.length;
+          const totalItems = data.reduce((sum, order) => sum + (order.items?.length || 0), 0);
+          
+          setStats({ totalSpent, totalOrders, totalItems });
+        }
       } catch (error) {
-        console.error('Error parsing orders from localStorage:', error);
+        console.error('Error fetching orders:', error);
       }
-    }
+    };
+
+    fetchOrders();
   }, [user, loading, isAdmin, router]);
 
   if (loading) {
@@ -107,9 +110,9 @@ export default function DashboardPage() {
               {orders.slice(0, 5).map((order, index) => (
                 <div key={index} className={styles.orderCard}>
                   <div className={styles.orderHeader}>
-                    <div className={styles.orderId}>Order #{order.id}</div>
-                    <div className={styles.orderDate}>{new Date(order.date).toLocaleDateString()}</div>
-                    <div className={styles.orderStatus}>Completed</div>
+                    <div className={styles.orderId}>Order #{order._id || order.id}</div>
+                    <div className={styles.orderDate}>{new Date(order.createdAt || order.date).toLocaleDateString()}</div>
+                    <div className={styles.orderStatus}>{order.status || 'Completed'}</div>
                   </div>
                   <div className={styles.orderItems}>
                     {order.items.map((item, itemIndex) => (
@@ -123,7 +126,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
                   <div className={styles.orderTotal}>
-                    <span>Total: ${order.total.toLocaleString()}</span>
+                    <span>Total: ${(order.totalAmount || order.total || 0).toLocaleString()}</span>
                   </div>
                 </div>
               ))}

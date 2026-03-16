@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
-import { getProducts, addProduct, deleteProduct } from '@/lib/products';
 import toast from 'react-hot-toast';
 import styles from './page.module.css';
 
@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const { user, isAdmin, loading } = useAuth();
   const router = useRouter();
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [stats, setStats] = useState({
@@ -31,36 +32,138 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Load products
-    const allProducts = getProducts();
-    setProducts(allProducts);
-    setStats({
-      totalProducts: allProducts.length,
-      totalRevenue: 0, // Would be calculated from actual orders
-      totalOrders: 0, // Would be calculated from actual orders
-    });
+    // Load data
+    fetchProducts();
+    fetchOrders();
   }, [user, loading, isAdmin, router]);
 
-  const handleDeleteProduct = (productId) => {
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('/api/products');
+      const data = await res.json();
+      setProducts(data);
+      setStats(prev => ({
+        ...prev,
+        totalProducts: data.length,
+      }));
+    } catch (error) {
+      toast.error('Failed to load products');
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders/all');
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+        
+        const revenue = data.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+        
+        setStats(prev => ({
+          ...prev,
+          totalRevenue: revenue,
+          totalOrders: data.length,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+    }
+  };
+
+  const handleDeleteProduct = async (productId) => {
     if (confirm('Are you sure you want to delete this product?')) {
-      const success = deleteProduct(productId);
-      if (success) {
-        setProducts(products.filter(p => p.id !== productId));
-        toast.success('Product deleted successfully');
-      } else {
-        toast.error('Failed to delete product');
+      try {
+        const res = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
+        if (res.ok) {
+          setProducts(products.filter(p => p.id !== productId));
+          toast.success('Product deleted successfully');
+          setStats(prev => ({ ...prev, totalProducts: prev.totalProducts - 1 }));
+        } else {
+          toast.error('Failed to delete product');
+        }
+      } catch (error) {
+        toast.error('Error deleting product');
       }
     }
   };
 
-  const handleAddProduct = (productData) => {
+  const handleAddProduct = async (productData) => {
     try {
-      const newProduct = addProduct(productData);
-      setProducts([...products, newProduct]);
-      setShowAddForm(false);
-      toast.success('Product added successfully');
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData),
+      });
+      
+      if (res.ok) {
+        const newProduct = await res.json();
+        setProducts([...products, newProduct]);
+        setShowAddForm(false);
+        toast.success('Product added successfully');
+        setStats(prev => ({ ...prev, totalProducts: prev.totalProducts + 1 }));
+      } else {
+        toast.error('Failed to add product');
+      }
     } catch (error) {
-      toast.error('Failed to add product');
+      toast.error('Error adding product');
+    }
+  };
+
+  const handleUpdateProduct = async (id, productData) => {
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData),
+      });
+      
+      if (res.ok) {
+        const updated = await res.json();
+        setProducts(products.map(p => p.id === id ? updated : p));
+        setEditingProduct(null);
+        toast.success('Product updated successfully');
+      } else {
+        toast.error('Failed to update product');
+      }
+    } catch (error) {
+      toast.error('Error updating product');
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      
+      if (res.ok) {
+        setOrders(orders.map(o => (o._id === orderId || o.id === orderId) ? { ...o, status: newStatus } : o));
+        toast.success(`Order marked as ${newStatus}`);
+      } else {
+        toast.error('Failed to update order status');
+      }
+    } catch (error) {
+      toast.error('Error updating order');
+    }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    if (confirm('Are you sure you want to delete this order?')) {
+      try {
+        const res = await fetch(`/api/orders/${orderId}`, { method: 'DELETE' });
+        if (res.ok) {
+          setOrders(orders.filter(o => (o._id !== orderId && o.id !== orderId)));
+          toast.success('Order deleted');
+          setStats(prev => ({ ...prev, totalOrders: prev.totalOrders - 1 }));
+        } else {
+          toast.error('Failed to delete order');
+        }
+      } catch (error) {
+        toast.error('Error deleting order');
+      }
     }
   };
 
@@ -116,36 +219,77 @@ export default function AdminDashboard() {
           </Link>
         </div>
 
-        {/* Recent Products */}
-        <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Recent Products</h2>
-          <div className={styles.productsGrid}>
-            {products.slice(0, 6).map((product) => (
-              <div key={product.id} className={styles.productCard}>
-                <div className={styles.productImage}>
-                  <img src={product.imageUrl} alt={product.title} />
+        {/* Main Content Grid */}
+        <div className={styles.dashboardGrid}>
+          {/* Recent Products */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeaderLine}>
+              <h2 className={styles.sectionTitle}>Recent Products</h2>
+              <Link href="/products" className={styles.viewAll}>View all</Link>
+            </div>
+            <div className={styles.productsList}>
+              {products.slice(0, 5).map((product) => (
+                <div key={product.id} className={styles.listItem}>
+                  <Image 
+                    src={product.imageUrl} 
+                    alt={product.title} 
+                    width={40} 
+                    height={40} 
+                    className={styles.listThumb}
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'; }}
+                  />
+                  <div className={styles.listInfo}>
+                    <h3 className={styles.listTitle}>{product.title}</h3>
+                    <p className={styles.listMeta}>{product.category} • ${product.price.toLocaleString()}</p>
+                  </div>
+                  <div className={styles.listActions}>
+                    <button onClick={() => setEditingProduct(product)}>Edit</button>
+                    <button onClick={() => handleDeleteProduct(product.id)} className={styles.deleteText}>Delete</button>
+                  </div>
                 </div>
-                <div className={styles.productInfo}>
-                  <h3 className={styles.productTitle}>{product.title}</h3>
-                  <p className={styles.productCategory}>{product.category}</p>
-                  <p className={styles.productPrice}>${product.price.toLocaleString()}</p>
-                  <div className={styles.productActions}>
-                    <button
-                      className={styles.editBtn}
-                      onClick={() => setEditingProduct(product)}
+              ))}
+              {products.length === 0 && <p className={styles.emptyText}>No products found.</p>}
+            </div>
+          </div>
+
+          {/* Recent Orders */}
+          <div className={styles.section}>
+            <div className={styles.sectionHeaderLine}>
+              <h2 className={styles.sectionTitle}>Recent Orders</h2>
+              <button className={styles.viewAll} onClick={fetchOrders}>Refresh</button>
+            </div>
+            <div className={styles.ordersList}>
+              {orders.slice(0, 5).map((order) => (
+                <div key={order._id || order.id} className={styles.listItem}>
+                  <div className={styles.listInfo}>
+                    <h3 className={styles.listTitle}>{order.customer?.name || 'Guest'}</h3>
+                    <p className={styles.listMeta}>{order.items?.length || 0} items • ${order.totalAmount?.toLocaleString()}</p>
+                    <p className={styles.listSubMeta}>{new Date(order.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className={styles.orderStatus}>
+                    <select 
+                      className={styles.statusSelect}
+                      value={order.status || 'pending'}
+                      onChange={(e) => handleUpdateOrderStatus(order._id || order.id, e.target.value)}
                     >
-                      Edit
-                    </button>
-                    <button
-                      className={styles.deleteBtn}
-                      onClick={() => handleDeleteProduct(product.id)}
+                      <option value="pending">Pending</option>
+                      <option value="paid">Paid</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                    <button 
+                      className={styles.deleteOrderBtn}
+                      onClick={() => handleDeleteOrder(order._id || order.id)}
+                      title="Delete Order"
                     >
-                      Delete
+                      ×
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+              {orders.length === 0 && <p className={styles.emptyText}>No orders yet.</p>}
+            </div>
           </div>
         </div>
 
@@ -161,12 +305,7 @@ export default function AdminDashboard() {
         {editingProduct && (
           <ProductForm
             product={editingProduct}
-            onSubmit={(data) => {
-              // In a real app, this would update the product
-              console.log('Update product:', data);
-              setEditingProduct(null);
-              toast.success('Product updated successfully');
-            }}
+            onSubmit={(data) => handleUpdateProduct(editingProduct.id, data)}
             onCancel={() => setEditingProduct(null)}
           />
         )}

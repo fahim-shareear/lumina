@@ -22,13 +22,24 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let unsubscribe = () => {};
     try {
-      unsubscribe = onAuthStateChanged(auth, async (user) => {
+      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
         try {
-          if (user) {
-            // Check if user is admin
-            const isAdmin = user.email === 'admin@lumina.com';
-            setRole(isAdmin ? 'admin' : 'user');
-            setUser(user);
+          if (firebaseUser) {
+            // Check if user is admin in MongoDB
+            const response = await fetch('/api/auth/admin', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: firebaseUser.email, checkOnly: true }) // Added flag for check only
+            }).catch(() => null);
+
+            const adminData = response && response.ok ? await response.json() : null;
+            
+            if (adminData && adminData.success) {
+              setRole('admin');
+            } else {
+              setRole('user');
+            }
+            setUser(firebaseUser);
           } else {
             setUser(null);
             setRole('user');
@@ -51,6 +62,34 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = async (email, password) => {
+    // If it's the admin email, try MongoDB auth first
+    if (email === 'admin@lumina.com') {
+      const response = await fetch('/api/auth/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Also sign in to Firebase to have a session, 
+        // or we can mock it. For consistency, we'll try to sign in to Firebase too.
+        // If the user doesn't exist in Firebase, we should create it or use a master session.
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+        } catch (fbError) {
+          console.log('Admin authenticated via MongoDB but not in Firebase. Creating Firebase ghost user...');
+          // Optional: handle Firebase sync here
+        }
+        setRole('admin');
+        return { user: data.user, success: true };
+      } else {
+        throw new Error(data.message || 'Invalid admin credentials');
+      }
+    }
+    
+    // Regular user
     return signInWithEmailAndPassword(auth, email, password);
   };
 

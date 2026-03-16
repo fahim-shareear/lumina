@@ -113,7 +113,14 @@ export default function Navbar() {
                         <div key={item.id} className={styles.cartItem}>
                           {item.imageUrl && (
                             <div className={styles.cartItemImg}>
-                              <img src={item.imageUrl} alt={item.title} />
+                              <Image 
+                                src={item.imageUrl} 
+                                alt={item.title} 
+                                width={40} 
+                                height={40} 
+                                className={styles.thumb}
+                                onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'; }}
+                              />
                             </div>
                           )}
                           <div className={styles.cartItemInfo}>

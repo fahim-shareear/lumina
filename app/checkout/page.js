@@ -6,6 +6,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import CheckoutForm from '@/components/CheckoutForm';
 import { useCart } from '@/components/CartProvider';
+import { useAuth } from '@/components/AuthProvider';
 import styles from './page.module.css';
 
 // Initialize Stripe
@@ -17,6 +18,7 @@ function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { cart, clearCart, getTotalPrice } = useCart();
+  const { user } = useAuth();
   const [clientSecret, setClientSecret] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -122,9 +124,40 @@ function CheckoutContent() {
                   <CheckoutForm
                     clientSecret={clientSecret}
                     amount={getTotalPrice() * 100} // Convert to cents
-                    onSuccess={() => {
-                      clearCart();
-                      router.push('/checkout/success');
+                    onSuccess={async () => {
+                      try {
+                        // Post order to MongoDB
+                        const orderData = {
+                          customer: {
+                            email: user?.email || 'guest@lumina.com',
+                            name: user?.displayName || 'Guest User',
+                          },
+                          items: cart.map(item => ({
+                            id: item.id,
+                            title: item.title,
+                            price: item.price,
+                            quantity: item.quantity,
+                            imageUrl: item.imageUrl
+                          })),
+                          totalAmount: getTotalPrice(),
+                          paymentMethod: 'Stripe',
+                          paymentStatus: 'paid'
+                        };
+                        
+                        await fetch('/api/orders', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify(orderData)
+                        });
+                        
+                        clearCart();
+                        router.push('/checkout/success');
+                      } catch (err) {
+                        console.error('Order creation failed:', err);
+                        // Still redirect to success since payment was confirmed
+                        clearCart();
+                        router.push('/checkout/success');
+                      }
                     }}
                   />
                 </Elements>

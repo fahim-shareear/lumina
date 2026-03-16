@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,7 +12,7 @@ const CATEGORIES = ['Timepieces', 'Fragrance', 'Home', 'Textiles', 'Beauty', 'St
 const PRIORITIES = ['Normal', 'High', 'Featured'];
 
 export default function AddProductPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -27,10 +27,15 @@ export default function AddProductPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Redirect if not authenticated
-  if (!user) {
-    router.replace('/login');
-    return null;
+  // Redirect if not authenticated (client-side only)
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, authLoading, router]);
+
+  if (authLoading || !user) {
+    return <div className={styles.loading}>Checking authorisation...</div>;
   }
 
   const update = (field) => (e) => {

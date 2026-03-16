@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/components/AuthProvider';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -109,7 +110,14 @@ export default function ProfilePage() {
                 <div className={styles.avatarSection}>
                   <div className={styles.avatarPreview}>
                     {profileForm.photoURL ? (
-                      <img src={profileForm.photoURL} alt="Avatar" className={styles.avatarImg} />
+                      <Image 
+                        src={profileForm.photoURL} 
+                        alt="Avatar" 
+                        width={80} 
+                        height={80} 
+                        className={styles.avatarImg}
+                        onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'; }}
+                      />
                     ) : (
                       <span>{profileForm.displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}</span>
                     )}
