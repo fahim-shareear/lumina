@@ -26,7 +26,7 @@ const products = [
     fullDescription: 'Velvet Aurora is an olfactory journey through the world\'s most exotic botanical regions. Opening with the bright zing of Tasmanian pepperberry and green cardamom, it evolves through a heart of Bulgarian rose absolute and night-blooming jasmine. The base is anchored by 30-year-aged Hindi oud, white amber from Kerala, and rare ambergris. Each 50ml flacon is hand-blown Murano glass.',
     price: 680,
     category: 'Fragrance',
-    imageUrl: 'https://images.unsplash.com/photo-1594125355930-949659a56754?w=600&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&q=80',
     createdAt: '2024-02-03',
     priority: 'High',
     addedBy: 'admin@lumina.com',

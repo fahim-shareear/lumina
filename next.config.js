@@ -1,17 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      'images.unsplash.com',
-      'via.placeholder.com',
-      'picsum.photos',
-      'lh3.googleusercontent.com',
-      'lh4.googleusercontent.com',
-      'lh5.googleusercontent.com',
-      'lh6.googleusercontent.com',
-      'i.ibb.co.com',
-      'i.ibb.co',
-      'ibb.co'
+    remotePatterns: [
+      { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'via.placeholder.com' },
+      { protocol: 'https', hostname: 'picsum.photos' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: 'lh4.googleusercontent.com' },
+      { protocol: 'https', hostname: 'lh5.googleusercontent.com' },
+      { protocol: 'https', hostname: 'lh6.googleusercontent.com' },
+      { protocol: 'https', hostname: 'i.ibb.co.com' },
+      { protocol: 'https', hostname: 'i.ibb.co' },
+      { protocol: 'https', hostname: 'ibb.co' },
     ],
   },
 };
