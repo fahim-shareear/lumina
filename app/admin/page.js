@@ -123,15 +123,24 @@ export default function AdminDashboard() {
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     try {
+      const updateData = { status: newStatus };
+      
+      // Auto-add timestamps based on status
+      if (newStatus === 'shipped') {
+        updateData.shippedAt = new Date().toISOString();
+      } else if (newStatus === 'delivered') {
+        updateData.deliveredAt = new Date().toISOString();
+      }
+
       const res = await fetch(`/api/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify(updateData),
       });
       
       if (res.ok) {
         fetchOrders();
-        toast.success(`Status updated`);
+        toast.success(`Order marked as ${newStatus}`);
       } else {
         toast.error('Failed to update order status');
       }
@@ -286,17 +295,26 @@ export default function AdminDashboard() {
                     <p className={styles.listSubMeta}>{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
                   <div className={styles.orderStatus}>
-                    <select 
-                      className={styles.statusSelect}
-                      value={order.status || 'pending'}
-                      onChange={(e) => handleUpdateOrderStatus(order._id || order.id, e.target.value)}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="paid">Paid</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
+                    <div className={styles.statusBadgeWrapper}>
+                      <select 
+                        className={`${styles.statusSelect} ${styles[`status_${order.status || 'pending'}`]}`}
+                        value={order.status || 'pending'}
+                        onChange={(e) => handleUpdateOrderStatus(order._id || order.id, e.target.value)}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                      {order.shippedAt && order.status === 'shipped' && (
+                        <span className={styles.listSubMeta}>Sent: {new Date(order.shippedAt).toLocaleDateString()}</span>
+                      )}
+                      {order.deliveredAt && order.status === 'delivered' && (
+                        <span className={styles.listSubMeta}>Arrived: {new Date(order.deliveredAt).toLocaleDateString()}</span>
+                      )}
+                    </div>
                     <div className={styles.orderBtnGroup}>
                       <button 
                         className={styles.receiptBtn}

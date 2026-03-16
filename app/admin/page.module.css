@@ -219,6 +219,13 @@
   gap: 12px;
 }
 
+.statusBadgeWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
 .statusSelect {
   padding: 6px 12px;
   background: var(--surface-2, #1a1a24);
@@ -234,6 +241,22 @@
 .statusSelect:focus {
   border-color: var(--accent);
 }
+
+.statusBadge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status_pending { background: rgba(255, 165, 0, 0.1); color: #ffa500; }
+.status_processing { background: rgba(201, 168, 76, 0.1); color: var(--accent); }
+.status_shipped { background: rgba(0, 123, 255, 0.1); color: #007bff; }
+.status_delivered { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+.status_cancelled { background: rgba(224, 84, 84, 0.1); color: #e05454; }
+
+.status_paid { background: rgba(111, 66, 193, 0.1); color: #6f42c1; }
 
 /* Modal System */
 .modalOverlay {
