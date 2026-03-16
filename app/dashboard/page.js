@@ -114,7 +114,17 @@ export default function DashboardPage() {
                     <div className={styles.orderId}>Order #{order._id || order.id}</div>
                     <div className={styles.orderDate}>{new Date(order.createdAt || order.date).toLocaleDateString()}</div>
                     <div className={styles.orderHeaderActions}>
-                      <span className={styles.orderStatus}>{order.status || 'Completed'}</span>
+                      <div className={styles.orderMeta}>
+                        <span className={`${styles.orderStatus} ${styles[`status_${order.status || 'pending'}`]}`}>
+                          {order.status || 'Pending'}
+                        </span>
+                        {order.shippedAt && order.status === 'shipped' && (
+                          <span className={styles.metaTime}>Shipped: {new Date(order.shippedAt).toLocaleDateString()}</span>
+                        )}
+                        {order.deliveredAt && order.status === 'delivered' && (
+                          <span className={styles.metaTime}>Arrived: {new Date(order.deliveredAt).toLocaleDateString()}</span>
+                        )}
+                      </div>
                       <button 
                         className={styles.receiptBtn}
                         onClick={() => generateOrderReceipt(order)}

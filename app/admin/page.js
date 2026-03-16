@@ -50,7 +50,15 @@ export default function AdminDashboard() {
     try {
       const res = await fetch('/api/orders/all');
       if (res.ok) {
-        const data = await res.json();
+        let data = await res.json();
+        
+        // Finalize filter for delivery staff: they only see orders that need action
+        if (isDelivery && !isAdmin && !isStaff) {
+          data = data.filter(order => 
+            ['paid', 'shipped', 'delivered'].includes(order.status)
+          );
+        }
+
         setOrders(data);
         const revenue = data.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
         setStats(prev => ({ ...prev, totalRevenue: revenue, totalOrders: data.length }));
@@ -196,24 +204,32 @@ export default function AdminDashboard() {
     <div className={styles.page}>
       <div className="container">
         <div className={styles.header}>
-          <h1 className={styles.title}>Admin Dashboard</h1>
-          <p className={styles.subtitle}>Manage your marketplace</p>
+          <h1 className={styles.title}>
+            {isAdmin ? 'Admin Dashboard' : isDelivery && !isStaff ? 'Delivery Portal' : 'Staff Portal'}
+          </h1>
+          <p className={styles.subtitle}>
+            {isAdmin ? 'Manage products, orders, and users' : isDelivery && !isStaff ? 'Manage order fulfillment and logistics' : 'Manage your shop activities'}
+          </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Hide revenue for delivery staff */}
         <div className={styles.stats}>
-          <div className={styles.statCard}>
-            <div className={styles.statValue}>{stats.totalProducts}</div>
-            <div className={styles.statLabel}>Total Products</div>
-          </div>
-          <div className={styles.statCard}>
-            <div className={styles.statValue}>${stats.totalRevenue.toLocaleString()}</div>
-            <div className={styles.statLabel}>Total Revenue</div>
-          </div>
+          {(!isDelivery || isAdmin || isStaff) && (
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>${stats.totalRevenue.toLocaleString()}</div>
+              <div className={styles.statLabel}>Total Revenue</div>
+            </div>
+          )}
           <div className={styles.statCard}>
             <div className={styles.statValue}>{stats.totalOrders}</div>
             <div className={styles.statLabel}>Total Orders</div>
           </div>
+          {(!isDelivery || isAdmin || isStaff) && (
+            <div className={styles.statCard}>
+              <div className={styles.statValue}>{stats.totalProducts}</div>
+              <div className={styles.statLabel}>Active Products</div>
+            </div>
+          )}
           <div className={`${styles.statCard} ${styles.reportCard}`} onClick={() => generateOrdersReport(orders)}>
             <div className={styles.reportIcon}>📄</div>
             <div className={styles.statLabel}>Download Full Report</div>
