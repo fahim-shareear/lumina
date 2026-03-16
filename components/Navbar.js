@@ -206,13 +206,15 @@ export default function Navbar() {
                   </svg>
                   Edit Profile
                 </Link>
-                <Link href="/dashboard" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
-                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <rect x="3" y="3" width="14" height="14" rx="2"/>
-                    <path d="M3 9h14M9 21V9"/>
-                  </svg>
-                  Dashboard
-                </Link>
+                {!isAdmin && (
+                  <Link href="/dashboard" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="3" width="14" height="14" rx="2"/>
+                      <path d="M3 9h14M9 21V9"/>
+                    </svg>
+                    Dashboard
+                  </Link>
+                )}
                   <div className={styles.dropdownDivider} />
                   <button
                     className={`${styles.dropdownItem} ${styles.dropdownSignOut}`}
