@@ -48,7 +48,7 @@ export default function AdminDashboard() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('/api/orders');
+      const res = await fetch('/api/orders/all');
       if (res.ok) {
         const data = await res.json();
         setOrders(data);

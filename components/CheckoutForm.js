@@ -19,8 +19,9 @@ export default function CheckoutForm({ clientSecret, amount, onSuccess }) {
 
     setLoading(true);
 
-    const { error } = await stripe.confirmPayment({
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
+      redirect: 'if_required',
       confirmParams: {
         return_url: `${window.location.origin}/checkout/success`,
       },
@@ -30,10 +31,17 @@ export default function CheckoutForm({ clientSecret, amount, onSuccess }) {
       console.error('Payment confirmation error:', error);
       toast.error(error.message || 'Payment failed');
       setLoading(false);
-    } else {
-      // Payment succeeded
+    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+      // Payment succeeded immediately
       toast.success('Payment successful!');
-      onSuccess();
+      await onSuccess();
+      // Success redirection is handled in onSuccess in page.js, 
+      // but we add a fallback here just in case.
+      window.location.href = '/checkout/success';
+    } else {
+      // paymentIntent status is processing or requires_action (redirect happened/is happening)
+      // If redirect: 'if_required' leads to a redirect, this code won't run.
+      // If it doesn't redirect but isn't 'succeeded' yet, we just wait or show processing.
     }
   };
 
