@@ -2,7 +2,7 @@ import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { NextResponse } from 'next/server';
 
-const DB_NAME = process.env.MONGODB_DB || 'lumina';
+const DB_NAME = process.env.MONGODB_DB || 'lumina_gadgets';
 const COLLECTION_NAME = 'orders';
 
 /**

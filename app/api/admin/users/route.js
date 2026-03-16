@@ -1,4 +1,4 @@
-import { adminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth } from '@/lib/firebase-admin';
 import clientPromise from '@/lib/mongodb';
 import { NextResponse } from 'next/server';
 
@@ -8,6 +8,11 @@ export async function POST(request) {
 
     if (!email || !password || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const adminAuth = getAdminAuth();
+    if (!adminAuth) {
+      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
     }
 
     // 1. Create user in Firebase
