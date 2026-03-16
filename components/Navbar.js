@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { useCart } from '@/components/CartProvider';
 import styles from './Navbar.module.css';
@@ -17,12 +17,15 @@ const navLinks = [
 
 export default function Navbar() {
   const { user, signOut, isAdmin } = useAuth();
-  const { getTotalItems } = useCart();
+  const { getTotalItems, cart, getTotalPrice } = useCart();
   const pathname = usePathname();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef(null);
+  const cartRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -34,6 +37,9 @@ export default function Navbar() {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
+      }
+      if (cartRef.current && !cartRef.current.contains(e.target)) {
+        setCartOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -68,16 +74,74 @@ export default function Navbar() {
         {/* Auth area */}
         <div className={styles.authArea}>
           {/* Cart */}
-          <Link href="/cart" className={styles.cartLink}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="8" cy="19" r="1"/>
-              <circle cx="16" cy="19" r="1"/>
-              <path d="M1 1h3l1.68 10.39a2 2 0 002 1.61h9.72a2 2 0 001.99-1.79l1.2-7.21H5"/>
-            </svg>
-            {getTotalItems() > 0 && (
-              <span className={styles.cartBadge}>{getTotalItems()}</span>
+          <div className={styles.cartWrapper} ref={cartRef}>
+            <button
+              className={styles.cartLink}
+              onClick={() => setCartOpen((o) => !o)}
+              aria-label="Cart"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <circle cx="8" cy="19" r="1"/>
+                <circle cx="16" cy="19" r="1"/>
+                <path d="M1 1h3l1.68 10.39a2 2 0 002 1.61h9.72a2 2 0 001.99-1.79l1.2-7.21H5"/>
+              </svg>
+              {getTotalItems() > 0 && (
+                <span className={styles.cartBadge}>{getTotalItems()}</span>
+              )}
+            </button>
+
+            {cartOpen && (
+              <div className={styles.cartDropdown}>
+                <div className={styles.cartDropdownHeader}>
+                  <span className={styles.cartDropdownTitle}>Cart</span>
+                  <span className={styles.cartDropdownCount}>{getTotalItems()} item{getTotalItems() !== 1 ? 's' : ''}</span>
+                </div>
+
+                {cart.length === 0 ? (
+                  <div className={styles.cartEmpty}>
+                    <svg width="32" height="32" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.3">
+                      <circle cx="8" cy="19" r="1"/>
+                      <circle cx="16" cy="19" r="1"/>
+                      <path d="M1 1h3l1.68 10.39a2 2 0 002 1.61h9.72a2 2 0 001.99-1.79l1.2-7.21H5"/>
+                    </svg>
+                    <p>Your cart is empty</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className={styles.cartItems}>
+                      {cart.map((item) => (
+                        <div key={item.id} className={styles.cartItem}>
+                          {item.imageUrl && (
+                            <div className={styles.cartItemImg}>
+                              <img src={item.imageUrl} alt={item.title} />
+                            </div>
+                          )}
+                          <div className={styles.cartItemInfo}>
+                            <p className={styles.cartItemName}>{item.title}</p>
+                            <p className={styles.cartItemMeta}>
+                              Qty: {item.quantity} &nbsp;·&nbsp; ${(item.price * item.quantity).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className={styles.cartDropdownFooter}>
+                      <div className={styles.cartSubtotal}>
+                        <span>Subtotal</span>
+                        <span>${getTotalPrice().toLocaleString()}</span>
+                      </div>
+                      <button
+                        className={styles.cartViewBtn}
+                        onClick={() => { setCartOpen(false); router.push('/cart'); }}
+                      >
+                        View Cart & Checkout
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             )}
-          </Link>
+          </div>
           {user ? (
             <div className={styles.userMenu} ref={dropdownRef}>
               <button
@@ -189,8 +253,12 @@ export default function Navbar() {
           ))}
           {user ? (
             <>
-              <Link href="/products/add" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>Add Product</Link>
-              <Link href="/products/manage" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>Manage Products</Link>
+              {isAdmin && (
+                <>
+                  <Link href="/products/add" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>Add Product</Link>
+                  <Link href="/products/manage" className={styles.mobileLink} onClick={() => setMenuOpen(false)}>Manage Products</Link>
+                </>
+              )}
               <button className={`${styles.mobileLink} ${styles.mobileSignOut}`} onClick={() => { setMenuOpen(false); signOut(); }}>
                 Sign Out
               </button>

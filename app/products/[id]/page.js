@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
 import ProductImage from '@/components/ProductImage';
 import { useCart } from '@/components/CartProvider';
@@ -8,12 +8,14 @@ import toast from 'react-hot-toast';
 import styles from './page.module.css';
 
 export default function ProductDetailPage({ params }) {
+  // Next.js 15: params is now a Promise — must be unwrapped with React.use()
+  const { id } = use(params);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
 
   useEffect(() => {
-    fetch(`/api/products/${params.id}`)
+    fetch(`/api/products/${id}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.error) {
@@ -27,7 +29,7 @@ export default function ProductDetailPage({ params }) {
         setProduct(null);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [id]);
 
   const handleAddToCart = () => {
     if (product) {
@@ -41,8 +43,6 @@ export default function ProductDetailPage({ params }) {
     High: { bg: 'rgba(76,175,125,0.1)', color: '#4caf7d', border: 'rgba(76,175,125,0.3)' },
     Normal: { bg: 'rgba(120,120,140,0.12)', color: '#8a8a9a', border: 'rgba(120,120,140,0.2)' },
   };
-
-  const pc = priorityColors[product.priority] || priorityColors.Normal;
 
   if (loading) {
     return (
@@ -68,6 +68,9 @@ export default function ProductDetailPage({ params }) {
       </div>
     );
   }
+
+  // Safe to access product.priority only after the null-check above
+  const pc = priorityColors[product.priority] || priorityColors.Normal;
 
   return (
     <div className={styles.page}>

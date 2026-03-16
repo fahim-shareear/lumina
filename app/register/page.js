@@ -37,7 +37,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await signUp(form.email, form.password);
+      await signUp(form.email, form.password, form.name.trim());
       toast.success('Account created successfully!');
       router.push('/');
     } catch (error) {

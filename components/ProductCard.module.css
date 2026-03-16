@@ -132,7 +132,9 @@
 }
 
 .addToCartBtn:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
+  background: #fff;
+  border-color: #fff;
+  color: #0a0a0f;
   transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(255,255,255,0.18);
 }

@@ -30,15 +30,19 @@ export default function DashboardPage() {
     // Load user orders from localStorage (in production, this would be from a database)
     const savedOrders = localStorage.getItem(`orders_${user?.uid}`);
     if (savedOrders) {
-      const parsedOrders = JSON.parse(savedOrders);
-      setOrders(parsedOrders);
+      try {
+        const parsedOrders = JSON.parse(savedOrders);
+        setOrders(parsedOrders);
 
-      // Calculate stats
-      const totalSpent = parsedOrders.reduce((sum, order) => sum + order.total, 0);
-      const totalOrders = parsedOrders.length;
-      const totalItems = parsedOrders.reduce((sum, order) => sum + order.items.length, 0);
+        // Calculate stats
+        const totalSpent = parsedOrders.reduce((sum, order) => sum + order.total, 0);
+        const totalOrders = parsedOrders.length;
+        const totalItems = parsedOrders.reduce((sum, order) => sum + order.items.length, 0);
 
-      setStats({ totalSpent, totalOrders, totalItems });
+        setStats({ totalSpent, totalOrders, totalItems });
+      } catch (error) {
+        console.error('Error parsing orders from localStorage:', error);
+      }
     }
   }, [user, loading, isAdmin, router]);
 
@@ -141,7 +145,11 @@ export default function DashboardPage() {
             </div>
             <div className={styles.settingItem}>
               <div className={styles.settingLabel}>Member Since</div>
-              <div className={styles.settingValue}>{new Date(user.metadata.creationTime).toLocaleDateString()}</div>
+              <div className={styles.settingValue}>
+                {user.metadata?.creationTime
+                  ? new Date(user.metadata.creationTime).toLocaleDateString()
+                  : 'N/A'}
+              </div>
             </div>
           </div>
         </div>

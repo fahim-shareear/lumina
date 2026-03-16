@@ -122,9 +122,11 @@
 }
 
 .addToCartBtn:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
+  background-color: transparent;
+  border-color: #fff;
+  color: #ffff;
   transform: translateY(-1px);
+  box-shadow: 0 4px 24px rgba(255, 255, 255, 0.18);
 }
 
 .divider {

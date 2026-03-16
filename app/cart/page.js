@@ -48,13 +48,23 @@ export default function CartPage() {
         }),
       });
 
-      const { clientSecret } = await response.json();
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || 'Server error during checkout');
+      }
+
+      const data = await response.json();
+      const { clientSecret } = data;
+
+      if (!clientSecret) {
+        throw new Error('No client secret returned from server');
+      }
 
       // Redirect to checkout page with clientSecret
       window.location.href = `/checkout?clientSecret=${clientSecret}`;
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error('Failed to initiate checkout');
+      toast.error(error.message || 'Failed to initiate checkout');
     } finally {
       setLoading(false);
     }

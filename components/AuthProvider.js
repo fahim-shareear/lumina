@@ -20,18 +20,32 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState('user'); // 'admin' or 'user'
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // Check if user is admin (you can expand this logic)
-        const isAdmin = user.email === 'admin@lumina.com' || user.email === 'demo@lumina.com';
-        setRole(isAdmin ? 'admin' : 'user');
-        setUser(user);
-      } else {
-        setUser(null);
-        setRole('user');
-      }
+    let unsubscribe = () => {};
+    try {
+      unsubscribe = onAuthStateChanged(auth, async (user) => {
+        try {
+          if (user) {
+            // Check if user is admin (you can expand this logic)
+            const isAdmin = user.email === 'admin@lumina.com' || user.email === 'demo@lumina.com';
+            setRole(isAdmin ? 'admin' : 'user');
+            setUser(user);
+          } else {
+            setUser(null);
+            setRole('user');
+          }
+        } catch (innerError) {
+          console.error('Error processing auth state change:', innerError);
+        } finally {
+          setLoading(false);
+        }
+      }, (error) => {
+        console.error('Firebase auth error:', error);
+        setLoading(false);
+      });
+    } catch (error) {
+      console.error('Failed to initialize Firebase auth listener:', error);
       setLoading(false);
-    });
+    }
 
     return unsubscribe;
   }, []);

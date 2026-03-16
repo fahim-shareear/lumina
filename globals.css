@@ -91,9 +91,10 @@ input, textarea, select {
 }
 
 .btn-primary:hover {
-  background: var(--accent-2);
+  background: #fff;
+  color: #0a0a0f;
   transform: translateY(-1px);
-  box-shadow: 0 4px 20px rgba(201,168,76,0.35);
+  box-shadow: 0 4px 24px rgba(255,255,255,0.18);
 }
 
 .btn-secondary {
@@ -111,9 +112,9 @@ input, textarea, select {
 }
 
 .btn-secondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-glow);
+  border-color: rgba(255,255,255,0.6);
+  color: #fff;
+  background: rgba(255,255,255,0.06);
 }
 
 .btn-ghost {
@@ -131,8 +132,8 @@ input, textarea, select {
 }
 
 .btn-ghost:hover {
-  color: var(--text);
-  background: var(--surface);
+  color: #fff;
+  background: rgba(255,255,255,0.07);
 }
 
 .badge {
