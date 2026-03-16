@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup, updateProfile, updatePassword, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 const AuthContext = createContext();
@@ -25,8 +25,8 @@ export function AuthProvider({ children }) {
       unsubscribe = onAuthStateChanged(auth, async (user) => {
         try {
           if (user) {
-            // Check if user is admin (you can expand this logic)
-            const isAdmin = user.email === 'admin@lumina.com' || user.email === 'demo@lumina.com';
+            // Check if user is admin
+            const isAdmin = user.email === 'admin@lumina.com';
             setRole(isAdmin ? 'admin' : 'user');
             setUser(user);
           } else {
@@ -70,6 +70,22 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     return firebaseSignOut(auth);
   };
+  
+  const updateUserProfile = async (data) => {
+    if (!auth.currentUser) throw new Error('No user logged in');
+    await updateProfile(auth.currentUser, data);
+    // Refresh user state
+    setUser({ ...auth.currentUser });
+  };
+
+  const updateUserPassword = async (newPassword) => {
+    if (!auth.currentUser) throw new Error('No user logged in');
+    await updatePassword(auth.currentUser, newPassword);
+  };
+
+  const sendPasswordReset = async (email) => {
+    await sendPasswordResetEmail(auth, email);
+  };
 
   const value = {
     user,
@@ -79,6 +95,9 @@ export function AuthProvider({ children }) {
     signUp,
     signInWithGoogle,
     signOut,
+    updateUserProfile,
+    updateUserPassword,
+    sendPasswordReset,
     loading,
   };
 

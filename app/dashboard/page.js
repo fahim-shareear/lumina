@@ -139,6 +139,11 @@ export default function DashboardPage() {
               <div className={styles.settingLabel}>Email</div>
               <div className={styles.settingValue}>{user.email}</div>
             </div>
+            <div style={{ marginTop: '20px' }}>
+              <Link href="/profile" className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.8rem' }}>
+                Edit Profile
+              </Link>
+            </div>
             <div className={styles.settingItem}>
               <div className={styles.settingLabel}>Account Type</div>
               <div className={styles.settingValue}>Customer</div>

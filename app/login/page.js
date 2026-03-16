@@ -8,12 +8,13 @@ import toast from 'react-hot-toast';
 import styles from './page.module.css';
 
 export default function LoginPage() {
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, sendPasswordReset } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [errors, setErrors] = useState({});
 
   const validate = () => {
@@ -40,6 +41,25 @@ export default function LoginPage() {
       setErrors({ form: 'Invalid credentials' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setErrors({ email: 'Enter your email first' });
+      toast.error('Please enter your email address');
+      return;
+    }
+    
+    setIsResetting(true);
+    try {
+      await sendPasswordReset(email);
+      toast.success('Password reset email sent!');
+    } catch (error) {
+      console.error('Password reset error:', error);
+      toast.error(error.message || 'Failed to send reset email');
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -72,9 +92,9 @@ export default function LoginPage() {
           <p className={styles.subtitle}>Sign in to your account to continue</p>
         </div>
 
-        {/* Demo hint */}
+        {/* Updated Demo hint */}
         <div className={styles.demoHint}>
-          <strong>Demo:</strong> demo@lumina.com / demo123
+          <strong>Admin:</strong> admin@lumina.com / Lumina@1122
         </div>
 
         {/* Google Sign In */}
@@ -114,7 +134,18 @@ export default function LoginPage() {
           </div>
 
           <div className={styles.field}>
-            <label className="label">Password</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label className="label" style={{ marginBottom: 0 }}>Password</label>
+              <button 
+                type="button" 
+                className={styles.link} 
+                style={{ fontSize: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                onClick={handleForgotPassword}
+                disabled={isResetting}
+              >
+                {isResetting ? 'Sending...' : 'Forgot password?'}
+              </button>
+            </div>
             <input
               type="password"
               className={`input ${errors.password ? styles.inputError : ''}`}

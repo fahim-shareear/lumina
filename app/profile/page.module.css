@@ -1,0 +1,144 @@
+.page {
+  padding: 48px 0 80px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-2);
+  text-decoration: none;
+  margin-bottom: 24px;
+  transition: color 0.2s;
+  padding: 8px 0;
+}
+
+.back:hover {
+  color: var(--accent);
+}
+
+.card {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.header {
+  padding: 32px 32px 24px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--text-3);
+}
+
+.content {
+  padding: 32px;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sectionTitle::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.avatarSection {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.avatarPreview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 2px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup:last-child {
+  margin-bottom: 0;
+}
+
+.submitBtn {
+  width: 100%;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.error {
+  background: rgba(224, 84, 84, 0.1);
+  border: 1px solid rgba(224, 84, 84, 0.3);
+  color: #ff6b6b;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .content {
+    padding: 24px;
+  }
+  
+  .avatarSection {
+    flex-direction: column;
+    text-align: center;
+  }
+}

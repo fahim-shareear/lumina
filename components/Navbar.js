@@ -194,13 +194,20 @@ export default function Navbar() {
                       <div className={styles.dropdownDivider} />
                     </>
                   )}
-                  <Link href="/dashboard" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="1" y="1" width="13" height="13" rx="2"/>
-                      <path d="M4 6h7M4 9h7"/>
-                    </svg>
-                    My Dashboard
-                  </Link>
+                <Link href="/profile" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M16 17v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="10" cy="7" r="4"/>
+                  </svg>
+                  Edit Profile
+                </Link>
+                <Link href="/dashboard" className={styles.dropdownItem} onClick={() => setDropdownOpen(false)}>
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <rect x="3" y="3" width="14" height="14" rx="2"/>
+                    <path d="M3 9h14M9 21V9"/>
+                  </svg>
+                  Dashboard
+                </Link>
                   <div className={styles.dropdownDivider} />
                   <button
                     className={`${styles.dropdownItem} ${styles.dropdownSignOut}`}
