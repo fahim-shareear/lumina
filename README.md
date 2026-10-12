@@ -1,6 +1,7 @@
 # ✦ Lumina — Curated Luxury Marketplace
 
 A full-stack Next.js marketplace application with authentication, product management, and a polished dark luxury UI.
+https://lumina-omega-coral.vercel.app/
 
 ---
 
